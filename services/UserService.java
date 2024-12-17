@@ -14,11 +14,44 @@ public class UserService {
     }
 
     public static void registerUser() {
-        System.out.print("Enter username: ");
-        String username = scanner.nextLine();
-
-        System.out.print("Enter password: ");
-        String password = scanner.nextLine();
+        String username = "";
+        String password = "";
+    
+        while (true) {
+            System.out.print("Enter username: ");
+            username = scanner.nextLine();
+    
+            if (username.length() < 4) {
+                System.out.println("Username must be at least 4 characters long. Please try again.");
+                continue;
+            }
+    
+            try (Connection conn = DatabaseConnector.getConnection()) {
+                PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?");
+                checkStmt.setString(1, username);
+                ResultSet rs = checkStmt.executeQuery();
+    
+                if (rs.next() && rs.getInt(1) > 0) {
+                    System.out.println("Username already exists. Please choose another username.");
+                } else {
+                    break; 
+                }
+            } catch (SQLException e) {
+                System.out.println("Error checking username: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    
+        while (true) {
+            System.out.print("Enter password: ");
+            password = scanner.nextLine();
+    
+            if (password.length() < 8) {
+                System.out.println("Password must be at least 8 characters long. Please try again.");
+                continue;
+            }
+            break; 
+        }
 
         try (Connection conn = DatabaseConnector.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)");
@@ -31,13 +64,47 @@ public class UserService {
             e.printStackTrace();
         }
     }
+    
 
     public static void loginUser() {
-        System.out.print("Enter username: ");
-        String username = scanner.nextLine();
+        String username = "";
+        String password = "";
     
-        System.out.print("Enter password: ");
-        String password = scanner.nextLine();
+        while (true) {
+            System.out.print("Enter username: ");
+            username = scanner.nextLine();
+    
+            if (username.length() < 4) {
+                System.out.println("Username must be at least 4 characters long. Please try again.");
+                continue;
+            }
+    
+            try (Connection conn = DatabaseConnector.getConnection()) {
+                PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?");
+                checkStmt.setString(1, username);
+                ResultSet rs = checkStmt.executeQuery();
+    
+                if (rs.next() && rs.getInt(1) == 0) {
+                    System.out.println("Username does not exist. Please try again.");
+                } else {
+                    break; 
+                }
+            } catch (SQLException e) {
+                System.out.println("Error checking username: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    
+        while (true) {
+            System.out.print("Enter password: ");
+            password = scanner.nextLine();
+    
+            if (password.length() < 8) {
+                System.out.println("Password must be at least 8 characters long. Please try again.");
+                continue;
+            }
+            break; 
+        }
     
         try (Connection conn = DatabaseConnector.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?");
@@ -51,13 +118,13 @@ public class UserService {
                 UserService userService = new UserService(rs.getInt("id"));
                 userService.userMenu();
             } else {
-                System.out.println("Invalid credentials. Try again.");
+                System.out.println("Invalid credentials. Please try again.");
             }
         } catch (SQLException e) {
             System.out.println("Login error: " + e.getMessage());
             e.printStackTrace();
         }
-    }
+    }    
 
     public void userMenu() {
         while (true) {
@@ -65,8 +132,7 @@ public class UserService {
                 System.out.println("\n--- User Menu ---");
                 System.out.println("1. Vote in a Poll");
                 System.out.println("2. View Poll Results");
-                System.out.println("3. Request Account Deactivation");
-                System.out.println("4. Back to Main Menu");
+                System.out.println("3. Back to Main Menu");
                 System.out.print("Choose an option: ");
                 int choice = scanner.nextInt();
                 scanner.nextLine(); 
