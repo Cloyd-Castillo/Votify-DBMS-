@@ -16,11 +16,15 @@ public class AdminService {
         System.out.print("Enter admin password: ");
         String password = scanner.nextLine();
 
-        if (username.equals(ADMIN_USERNAME) && password.equals(ADMIN_PASSWORD)) {
-            System.out.println("Admin login successful! Welcome, Admin.");
-            adminMenu();
-        } else {
-            System.out.println("Invalid admin credentials. Try again.");
+        try {
+            if (username.equals(ADMIN_USERNAME) && password.equals(ADMIN_PASSWORD)) {
+                System.out.println("Admin login successful! Welcome, Admin.");
+                adminMenu();
+            } else {
+                System.out.println("Invalid admin credentials. Try again.");
+            }
+        } catch (Exception e) {
+            System.out.println("Error during admin login: " + e.getMessage());
         }
     }
 
@@ -33,29 +37,43 @@ public class AdminService {
             System.out.println("4. Approve Account Deactivations");
             System.out.println("5. Back to Main Menu");
             System.out.print("Choose an option: ");
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
-
-            switch (choice) {
-                case 1:
-                    createPoll();
-                    break;
-                case 2:
-                    viewPollResults();
-                    break;
-                case 3:
-                    endPoll();
-                    break;
-                case 4:
-                    approveDeactivations();
-                    break;
-                case 5:
-                    return;
-                default:
-                    System.out.println("Invalid option! Please try again.");
+    
+            int choice = -1;
+            while (choice == -1) {
+                try {
+                    choice = Integer.parseInt(scanner.nextLine());
+                    if (choice < 1 || choice > 5) {
+                        System.out.println("Invalid option! Please try again.");
+                        choice = -1;
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input! Please enter a valid number.");
+                }
+            }
+    
+            try {
+                switch (choice) {
+                    case 1:
+                        createPoll();
+                        break;
+                    case 2:
+                        viewPollResults();
+                        break;
+                    case 3:
+                        endPoll();
+                        break;
+                    case 4:
+                        approveDeactivations();
+                        break;
+                    case 5:
+                        return;
+                }
+            } catch (Exception e) {
+                System.out.println("Error during admin menu operation: " + e.getMessage());
             }
         }
     }
+    
 
     private static void createPoll() {
         System.out.print("Enter poll title: ");
@@ -98,6 +116,8 @@ public class AdminService {
             System.out.println("Poll created successfully!");
         } catch (SQLException e) {
             System.out.println("Error creating poll: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Unexpected error during poll creation: " + e.getMessage());
         }
     }
 
@@ -129,6 +149,8 @@ public class AdminService {
             }
         } catch (SQLException e) {
             System.out.println("Error viewing results: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Unexpected error while viewing poll results: " + e.getMessage());
         }
     }
 
@@ -156,6 +178,8 @@ public class AdminService {
             viewPollResults();
         } catch (SQLException e) {
             System.out.println("Error ending poll: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Unexpected error while ending the poll: " + e.getMessage());
         }
     }
 
@@ -181,7 +205,9 @@ public class AdminService {
 
             System.out.println("Deactivation approved. User removed from the database.");
         } catch (SQLException e) {
-            System.out.println("Error deactivation: " + e.getMessage());
+            System.out.println("Error deactivating account: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Unexpected error during account deactivation: " + e.getMessage());
         }
     }
 }

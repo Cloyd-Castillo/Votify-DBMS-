@@ -3,10 +3,8 @@ package models;
 import java.util.ArrayList;
 
 public class Poll {
-    private int id;
     private String title;
     private String startDate;
-    private String endDate;
     private ArrayList<String> options;
 
     public Poll(String title, String startDate) {

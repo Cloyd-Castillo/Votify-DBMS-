@@ -28,6 +28,7 @@ public class UserService {
             System.out.println("Registration successful!");
         } catch (SQLException e) {
             System.out.println("Error during registration: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -47,47 +48,50 @@ public class UserService {
             if (rs.next()) {
                 System.out.println("Login successful! Welcome, " + username + "!");
                 
-                // Initialize UserService with the user's ID
                 UserService userService = new UserService(rs.getInt("id"));
-                userService.userMenu(); // Call userMenu without arguments
+                userService.userMenu();
             } else {
                 System.out.println("Invalid credentials. Try again.");
             }
         } catch (SQLException e) {
             System.out.println("Login error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
-    
 
     public void userMenu() {
         while (true) {
-            System.out.println("\n--- User Menu ---");
-            System.out.println("1. Vote in a Poll");
-            System.out.println("2. View Poll Results");
-            System.out.println("3. Request Account Deactivation");
-            System.out.println("4. Back to Main Menu");
-            System.out.print("Choose an option: ");
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            try {
+                System.out.println("\n--- User Menu ---");
+                System.out.println("1. Vote in a Poll");
+                System.out.println("2. View Poll Results");
+                System.out.println("3. Request Account Deactivation");
+                System.out.println("4. Back to Main Menu");
+                System.out.print("Choose an option: ");
+                int choice = scanner.nextInt();
+                scanner.nextLine(); 
 
-            switch (choice) {
-                case 1:
-                    voteInPoll();
-                    break;
-                case 2:
-                    this.viewPollResults();
-                    break;
-                case 3:
-                    return;
-                default:
-                    System.out.println("Invalid option! Please try again.");
+                switch (choice) {
+                    case 1:
+                        voteInPoll();
+                        break;
+                    case 2:
+                        this.viewPollResults();
+                        break;
+                    case 3:
+                        return;
+                    default:
+                        System.out.println("Invalid option! Please try again.");
+                }
+            } catch (Exception e) {
+                System.out.println("Error in user menu: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
 
     private void voteInPoll() {
         try (Connection conn = DatabaseConnector.getConnection()) {
-            // Display active polls with their end dates
             PreparedStatement stmt = conn.prepareStatement(
                 "SELECT id, title, DATE_FORMAT(end_date, '%b %d, %Y') AS formatted_end_date " +
                 "FROM polls WHERE end_date > NOW()");
@@ -101,11 +105,10 @@ public class UserService {
     
             System.out.print("Enter the poll ID to vote (or 0 to cancel): ");
             int pollId = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine();
     
             if (pollId == 0) return;
     
-            // Check if user has already voted in this poll
             PreparedStatement checkStmt = conn.prepareStatement(
                 "SELECT * FROM user_votes WHERE user_id = ? AND poll_id = ?");
             checkStmt.setInt(1, userId);
@@ -117,7 +120,6 @@ public class UserService {
                 return;
             }
     
-            // Display poll options
             PreparedStatement optionsStmt = conn.prepareStatement(
                 "SELECT DISTINCT choice FROM votes WHERE poll_id = ?");
             optionsStmt.setInt(1, pollId);
@@ -131,7 +133,6 @@ public class UserService {
             System.out.print("Enter your choice: ");
             String choice = scanner.nextLine();
     
-            // Insert vote into user_votes and votes table
             PreparedStatement voteStmt = conn.prepareStatement(
                 "INSERT INTO user_votes (user_id, poll_id) VALUES (?, ?)");
             voteStmt.setInt(1, userId);
@@ -147,13 +148,12 @@ public class UserService {
             System.out.println("Your vote has been recorded successfully!");
         } catch (SQLException e) {
             System.out.println("Error while voting: " + e.getMessage());
+            e.printStackTrace();
         }
     }
-    
 
     private void viewPollResults() {
         try (Connection conn = DatabaseConnector.getConnection()) {
-            // Display all polls
             PreparedStatement stmt = conn.prepareStatement(
                 "SELECT id, title FROM polls");
             ResultSet rs = stmt.executeQuery();
@@ -169,7 +169,6 @@ public class UserService {
 
             if (pollId == 0) return;
 
-            // Fetch poll results
             PreparedStatement resultStmt = conn.prepareStatement(
                 "SELECT choice, COUNT(*) AS votes FROM votes WHERE poll_id = ? GROUP BY choice");
             resultStmt.setInt(1, pollId);
@@ -181,7 +180,7 @@ public class UserService {
             }
         } catch (SQLException e) {
             System.out.println("Error viewing poll results: " + e.getMessage());
+            e.printStackTrace();
         }
     }
-    
 }

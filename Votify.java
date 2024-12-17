@@ -1,15 +1,12 @@
-import java.sql.*;
 import java.util.Scanner;
 
 import services.AdminService;
 import services.UserService;
-import utils.DatabaseConnector;
 
 public class Votify {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        DatabaseConnector.initializeDatabase();
         while (true) {
             System.out.println("\n--- Welcome to Votify System ---");
             System.out.println("1. Register");
@@ -19,7 +16,7 @@ public class Votify {
             System.out.print("Choose an option: ");
 
             int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine();
 
             switch (choice) {
                 case 1:
