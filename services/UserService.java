@@ -16,21 +16,21 @@ public class UserService {
     public static void registerUser() {
         String username = "";
         String password = "";
-    
+
         while (true) {
             System.out.print("Enter username: ");
             username = scanner.nextLine();
-    
+
             if (username.length() < 4) {
                 System.out.println("Username must be at least 4 characters long. Please try again.");
                 continue;
             }
-    
+
             try (Connection conn = DatabaseConnector.getConnection()) {
                 PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?");
                 checkStmt.setString(1, username);
                 ResultSet rs = checkStmt.executeQuery();
-    
+
                 if (rs.next() && rs.getInt(1) > 0) {
                     System.out.println("Username already exists. Please choose another username.");
                 } else {
@@ -41,11 +41,11 @@ public class UserService {
                 e.printStackTrace();
             }
         }
-    
+
         while (true) {
             System.out.print("Enter password: ");
             password = scanner.nextLine();
-    
+
             if (password.length() < 8) {
                 System.out.println("Password must be at least 8 characters long. Please try again.");
                 continue;
@@ -64,26 +64,25 @@ public class UserService {
             e.printStackTrace();
         }
     }
-    
 
     public static void loginUser() {
         String username = "";
         String password = "";
-    
+
         while (true) {
             System.out.print("Enter username: ");
             username = scanner.nextLine();
-    
+
             if (username.length() < 4) {
                 System.out.println("Username must be at least 4 characters long. Please try again.");
                 continue;
             }
-    
+
             try (Connection conn = DatabaseConnector.getConnection()) {
                 PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?");
                 checkStmt.setString(1, username);
                 ResultSet rs = checkStmt.executeQuery();
-    
+
                 if (rs.next() && rs.getInt(1) == 0) {
                     System.out.println("Username does not exist. Please try again.");
                 } else {
@@ -94,27 +93,27 @@ public class UserService {
                 e.printStackTrace();
             }
         }
-    
+
         while (true) {
             System.out.print("Enter password: ");
             password = scanner.nextLine();
-    
+
             if (password.length() < 8) {
                 System.out.println("Password must be at least 8 characters long. Please try again.");
                 continue;
             }
             break; 
         }
-    
+
         try (Connection conn = DatabaseConnector.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?");
             stmt.setString(1, username);
             stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
-    
+
             if (rs.next()) {
                 System.out.println("Login successful! Welcome, " + username + "!");
-                
+
                 UserService userService = new UserService(rs.getInt("id"));
                 userService.userMenu();
             } else {
@@ -124,7 +123,7 @@ public class UserService {
             System.out.println("Login error: " + e.getMessage());
             e.printStackTrace();
         }
-    }    
+    }
 
     public void userMenu() {
         while (true) {
@@ -132,7 +131,8 @@ public class UserService {
                 System.out.println("\n--- User Menu ---");
                 System.out.println("1. Vote in a Poll");
                 System.out.println("2. View Poll Results");
-                System.out.println("3. Back to Main Menu");
+                System.out.println("3. Change Password");
+                System.out.println("4. Back to Main Menu");
                 System.out.print("Choose an option: ");
                 int choice = scanner.nextInt();
                 scanner.nextLine(); 
@@ -142,9 +142,12 @@ public class UserService {
                         voteInPoll();
                         break;
                     case 2:
-                        this.viewPollResults();
+                        viewPollResults();
                         break;
                     case 3:
+                        changePassword();
+                        break;
+                    case 4:
                         return;
                     default:
                         System.out.println("Invalid option! Please try again.");
@@ -153,6 +156,41 @@ public class UserService {
                 System.out.println("Error in user menu: " + e.getMessage());
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void changePassword() {
+        System.out.print("Enter your current password: ");
+        String currentPassword = scanner.nextLine();
+
+        try (Connection conn = DatabaseConnector.getConnection()) {
+            PreparedStatement checkStmt = conn.prepareStatement("SELECT * FROM users WHERE id = ? AND password = ?");
+            checkStmt.setInt(1, userId);
+            checkStmt.setString(2, currentPassword);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (!rs.next()) {
+                System.out.println("Current password is incorrect.");
+                return;
+            }
+
+            System.out.print("Enter your new password: ");
+            String newPassword = scanner.nextLine();
+
+            if (newPassword.length() < 8) {
+                System.out.println("New password must be at least 8 characters long.");
+                return;
+            }
+
+            PreparedStatement updateStmt = conn.prepareStatement("UPDATE users SET password = ? WHERE id = ?");
+            updateStmt.setString(1, newPassword);
+            updateStmt.setInt(2, userId);
+            updateStmt.executeUpdate();
+
+            System.out.println("Password updated successfully!");
+        } catch (SQLException e) {
+            System.out.println("Error updating password: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

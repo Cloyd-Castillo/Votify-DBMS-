@@ -4,15 +4,15 @@ USE votify;
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS polls (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     start_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    end_date DATETIME,
-    FOREIGN KEY (created_by) REFERENCES users(id)
+    end_date DATETIME
 );
 
 CREATE TABLE IF NOT EXISTS user_votes (
